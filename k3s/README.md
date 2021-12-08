@@ -39,6 +39,14 @@ kubectl apply -f whoami.yml
 kubectl apply -f nginx.yml
 ```
 
+### Expose the dashboard
+
+```Shell
+kubectl apply -f dashboard-ingress.yml
+
+curl -H 'Host: traefik.home' http://traefik.home/dashboard/
+```
+
 ## Uninstall
 
 ```Shell
