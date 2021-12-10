@@ -9,7 +9,7 @@ It comes with some addons already installed, for example:
 
 ## Getting Started
 
-### Master node Installation
+### Install the master node
 
 ```Shell
 curl -sfL https://get.k3s.io | sh -
@@ -18,7 +18,7 @@ curl -sfL https://get.k3s.io | sh -
 sudo cat /var/lib/rancher/k3s/server/node-token
 ```
 
-### Worker node Installation
+### Optional - Install a worker node
 
 ```Shell
 export K3S_URL="https://k3s-master:6443"
@@ -27,24 +27,54 @@ export K3S_TOKEN="xxx"
 curl -sfL https://get.k3s.io | sh -
 ```
 
-### Run a service on the K3s cluster
+### Make your kubeconfig available outside the cluster
 
-First, replace the DNS name specified in `whoami.yml` or `nginx.yml`.
+On the cluster master:
 
 ```Shell
-# whoami test node
-kubectl apply -f whoami.yml
-
-# nginx test node
-kubectl apply -f nginx.yml
+sudo chmod 660 /etc/rancher/k3s/k3s.yaml
 ```
 
-### Expose the dashboard
+On your workstation:
 
 ```Shell
-kubectl apply -f dashboard-ingress.yml
+scp marc@k3s-master:/etc/rancher/k3s/k3s.yaml ~/.kube/config
 
-curl -H 'Host: traefik.home' http://traefik.home/dashboard/
+# Change the ip address of the cluster
+vim ~/.kube/config
+```
+
+### Install cert-manager
+
+```Shell
+helm repo add jetstack https://charts.jetstack.io
+helm repo update
+helm install \
+  cert-manager jetstack/cert-manager \
+  --namespace cert-manager \
+  --version v1.2.0 \
+  --create-namespace \
+  --set installCRDs=true
+```
+
+### Expose the Traefik dashboard with HTTPS
+
+```Shell
+kubectl apply -f dashboard-ingress.yaml
+
+curl -k -H 'Host: traefik.home' https://traefik.home/dashboard/
+```
+
+### Run a service on the cluster
+
+First, replace the DNS name specified in `whoami.yaml` or `nginx.yaml`.
+
+```Shell
+# whoami HTTP test node
+kubectl apply -f whoami.yaml
+
+# nginx HTTPS test node
+kubectl apply -f nginx.yaml
 ```
 
 ## Uninstall

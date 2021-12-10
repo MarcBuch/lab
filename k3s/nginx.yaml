@@ -1,3 +1,4 @@
+---
 kind: Deployment
 apiVersion: apps/v1
 metadata:
@@ -16,7 +17,7 @@ spec:
             - name: nginx-app
               image: nginx
               ports:
-               - containerPort: 80
+                 - containerPort: 80
 ---
 apiVersion: v1
 kind: Service
@@ -26,22 +27,37 @@ metadata:
       app: nginx-app
 spec:
    ports:
-      - port: 9001
+      - port: 8443
         name: nginx-app
         targetPort: 80
    selector:
       app: nginx-app
 ---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+   name: testing.home
+spec:
+   dnsNames:
+      - testing.home
+   secretName: testing.home
+   issuerRef:
+      name: selfsigned
+      kind: ClusterIssuer
+---
 apiVersion: traefik.containo.us/v1alpha1
 kind: IngressRoute
 metadata:
-  name: ingressroute
+   name: ingressroute
 spec:
-  entryPoints:
-    - web
-  routes:
-  - match: Host(`nginx.home`)
-    kind: Rule
-    services:
-    - name: nginx-app
-      port: 9001
+   entryPoints:
+      - web
+      - websecure
+   routes:
+      - match: Host(`testing.home`)
+        kind: Rule
+        services:
+           - name: nginx-app
+             port: 8443
+   tls:
+      secretName: testing.home
