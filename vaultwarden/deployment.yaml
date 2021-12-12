@@ -1,3 +1,4 @@
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -22,7 +23,7 @@ spec:
             - name: WEBSOCKET_ENABLED
               value: "true"
             - name: SIGNUPS_ALLOWED
-              value: "false"
+              value: "true"
           volumeMounts:
             - name: vaultwarden-pv-storage
               mountPath: /data
@@ -40,3 +41,61 @@ spec:
         - name: vaultwarden-pv-storage
           persistentVolumeClaim:
             claimName: vaultwarden-pvc
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: vaultwarden-pvc
+  namespace: vaultwarden
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn
+  resources:
+    requests:
+      storage: 2Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vaultwarden-svc
+  namespace: vaultwarden
+  labels:
+    app: vaultwarden
+spec:
+  ports:
+    - port: 80
+      name: vaultwarden-gui
+      targetPort: 80
+  selector:
+    app: vaultwarden
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: vaultwarden-ingressroute
+  namespace: vaultwarden
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`vaultwarden.home`)
+      kind: Rule
+      services:
+        - name: vaultwarden-svc
+          port: 80
+  tls:
+    secretName: vaultwarden.home
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: vaultwarden.home
+  namespace: vaultwarden
+spec:
+  dnsNames:
+    - vaultwarden.home
+  secretName: vaultwarden.home
+  issuerRef:
+    name: selfsigned
+    kind: ClusterIssuer
