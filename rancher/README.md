@@ -2,6 +2,8 @@
 
 Rancher is a container management tool like Portainer, but for Kubernetes.
 
+**Requires significant resources**. Not very suited for a small PiCluster.
+
 ## Install Rancher with helm
 
 First, you need to create a namespace for rancher. It has to be called `cattle-system`.
