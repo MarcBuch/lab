@@ -6,7 +6,7 @@
 helm repo add longhorn https://charts.longhorn.io
 helm repo update
 
-helm install longhorn/longhorn --name longhorn --namespace longhorn-system
+helm install longhorn longhorn/longhorn --namespace longhorn-system
 ```
 
 ## Make the dashboard available
