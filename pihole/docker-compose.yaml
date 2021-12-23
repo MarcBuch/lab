@@ -1,0 +1,30 @@
+version: '3'
+
+volumes:
+  pihole-data:
+    driver: local
+  dnsmasq-data:
+    driver: local
+
+# More info at https://github.com/pi-hole/docker-pi-hole/ and https://docs.pi-hole.net/
+services:
+  pihole:
+    container_name: pihole
+    image: pihole/pihole:2021.12
+    ports:
+      - '53:53/tcp'
+      - '53:53/udp'
+      - '67:67/udp'
+      - '80:80/tcp'
+    environment:
+      TZ: 'Europe/Berlin'
+      WEBPASSWORD: 'mySecret'
+    # Volumes store your data between container upgrades
+    volumes:
+      - pihole-data:/etc/pihole/
+      - dnsmasq-data:/etc/dnsmasq.d/
+    # Recommended but not required (DHCP needs NET_ADMIN)
+    #   https://github.com/pi-hole/docker-pi-hole#note-on-capabilities
+    cap_add:
+      - NET_ADMIN
+    restart: unless-stopped
